@@ -1,0 +1,4 @@
+main.c: dependence dependence2
+    command
+    command
+    command

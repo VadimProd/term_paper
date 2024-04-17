@@ -31,35 +31,47 @@ void error_list(enum error_type error) {
 %start starter
 
 %token DIGIT LETTER
+
 %left '+' '-'
 %left '*' '/'
 %right '^'
 %%
 
-starter: begin 
-	| begin enter starter
-	| enter starter
-	| enter 
+starter:
+	begin
 ;
 
-enter: '\n' { /*line++;*/ }
+begin:
+	| command
+	| begin command
 ;
 
-begin: target ':' { printf("\nTEST\n"); }
-	| target ':' dependence {  }
-
+command:
+	variables_init
+	| rule
+	| recipe
+	| WORD
 ;
 
-init: 
+recipe:
+	'$' '(' WORD ')' recipe {printf("\nTEST\n");}
+	| WORD
 
+variables_init:
+	WORD '=' WORD
+	| WORD ':' '=' WORD
+	| WORD '?' '=' WORD
 ;
 
-main: 
+rule:
+	target ':' dependence
+	| target ':'
+	| target ':' WORD
 
-;  
+target: 
+	WORD
 
-target: WORD | WORD '.' WORD
-
-dependence: target {}
-	| dependence target {}
+dependence:
+	WORD
+	| dependence WORD
 ;

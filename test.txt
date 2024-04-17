@@ -1,4 +1,18 @@
-main.c: dependence dependence2
-    command
-    command
-    command
+# Test comment 1
+# Test comment 2
+
+CC = gcc
+CC_2 = g++
+CC_3 := g++
+CC_4 ?= g++
+
+# Test comment 3
+
+main.c: dependence1
+    command1
+    command2
+    command3
+
+main.c: CC3=gcc
+    $(CC) command4
+    command5

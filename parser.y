@@ -3,7 +3,8 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-#include <stdbool.h>
+
+extern int yyerror(const char *s);
 
 enum error_type {
 	XYU
@@ -12,10 +13,6 @@ enum error_type {
 void print_error(const char* text, int line) {
 	printf("%s in line %d\n", text, line);
 	exit(0);
-}
-
-void error_list(enum error_type error) {
-	return;
 }
 
 %}

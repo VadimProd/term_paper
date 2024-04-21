@@ -33,7 +33,7 @@ void skip_enter(int *symbol){
 int yylex() {
 	
 	int symbol = getc(yyin);
-	printf("Symbol1 is %d\n", symbol);
+	//printf("Symbol1 is %d\n", symbol);
 	if (symbol == EOF) { exit(0); }
 
 	while (symbol == ' ') symbol = getc(yyin);
@@ -44,7 +44,7 @@ int yylex() {
 		skip_enter(&symbol);
 		skip_spaces(&symbol);
 	}
-	printf("Symbol2 is %d\n", symbol);
+	//printf("Symbol2 is %d\n", symbol);
 
 	#ifdef DEBUG
 		#if DEBUG == 1

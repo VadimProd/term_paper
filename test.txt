@@ -8,11 +8,11 @@ CC_4 ?= g++
 
 # Test comment 3
 
-main.c: dependence1
+main.c: dependence1 dependence2
     command1
     command2
     command3
 
 main.c: CC3=gcc
-    $(CC) command4
+    command4
     command5

@@ -4,7 +4,7 @@
 extern FILE* yyin;
 
 int yyerror(const char *s) {  
-    fprintf(stderr, "error %s ", s);
+    fprintf(stderr, "error %s\n", s);
     exit(0);
 }
 

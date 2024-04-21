@@ -22,12 +22,12 @@ void print_error(const char* text, int line) {
 	char word[256];
 }
 
-%token <word> WORD
-%token <num> NUM
-
 %start starter
 
-%token DIGIT LETTER
+%token EOF_
+%token ENTER
+%token VAR_NAME VAR_ASSIGNMENT
+%token COMMAND
 
 %left '+' '-'
 %left '*' '/'
@@ -39,36 +39,58 @@ starter:
 ;
 
 begin:
-	| command
-	| begin command
+	str
+	| begin str
 ;
 
-command:
-	variables_init
+enter:
+	ENTER 
+	| enter ENTER
+	| EOF_{ printf("\nEnd of file\n"); exit (0); }
+
+str:
+	| enter
+	| variables_init
 	| rule
-	| recipe
-	| WORD
+	| command
 ;
-
-recipe:
-	'$' '(' WORD ')' recipe {printf("\nTEST\n");}
-	| WORD
 
 variables_init:
-	WORD '=' WORD
-	| WORD ':' '=' WORD
-	| WORD '?' '=' WORD
+	VAR_NAME VAR_ASSIGNMENT var_value
+;
+
+var_value:
+	VAR_NAME
+	| var_value VAR_NAME
 ;
 
 rule:
-	target ':' dependence
-	| target ':'
-	| target ':' WORD
-
-target: 
-	WORD
-
-dependence:
-	WORD
-	| dependence WORD
+	VAR_NAME ':' dependences {printf("\nRule\n");}
+	//| target ':'
+	//| target ':' WORD
 ;
+
+/* ------------------------------------------------------------------- */
+
+dependences:
+	| dependence
+	| dependences dependence
+;
+dependence:
+	VAR_NAME
+;
+
+/* ------------------------------------------------------------------- */
+commands:
+	| command
+	| commands command
+;
+
+command:
+	COMMAND
+;
+
+/* ------------------------------------------------------------------- */
+	
+
+//| variables_init

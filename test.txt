@@ -1,18 +1,11 @@
 # Test comment 1
 # Test comment 2
 
-CC = gcc
-CC_2 = g++
-CC_3 := g++
-CC_4 ?= g++
+CC = g++
+C2 = gcc
 
-# Test comment 3
+target : main.c main.h
+    gcc main.c
+    gcc main.c
+    gcc main.c
 
-main.c: dependence1 dependence2
-    command1
-    command2
-    command3
-
-main.c: CC3=gcc
-    command4
-    command5

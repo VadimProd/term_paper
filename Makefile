@@ -13,7 +13,7 @@ flex:
 	flex flex.l
 
 main:
-	$(CC) $(SOURCES) -o main $(FLAGS)
+	$(CC) $(SOURCES) -o $@ $(FLAGS)
 
 clean:
 	rm -f y.tab.c y.tab.h main lex.yy.c

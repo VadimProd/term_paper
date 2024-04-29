@@ -1,96 +1,171 @@
 %{
-#include <stdio.h> 
-#include <string.h>
-#include <math.h>
-#include <ctype.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
 
-extern int yyerror(const char *s);
+	#define TRUE 1
+	#define FALSE 0
 
-enum error_type {
-	XYU
-};
+	int yyparse();
+	int yyerror(const char *s);
 
-void print_error(const char* text, int line) {
-	printf("%s in line %d\n", text, line);
-	exit(0);
-}
+	extern int yylex();           
+	extern unsigned int g_if_end = 0;
+	extern unsigned int g_if_else = 0;
 
+	enum locations{
+		EMPTY,
+		TARGET,
+		COND
+	};
+
+	enum locations location = EMPTY;
 %}
 
-%union{
-	int num;
-	char word[256];
-}
-
-%start starter
+%token VAR_VALUE COMMAND
+%token TEMPLATE TEMPLATE_TARGET SPECIAL_TARGET
 
 %token EOF_
 %token ENTER
-%token VAR_NAME VAR_ASSIGNMENT
-%token COMMAND
+%token ELSE ENDIF
+%token INCLUDE DEFINE EXPORT
+%token IF IFDEF
 
-%left '+' '-'
-%left '*' '/'
-%right '^'
+%token PATH
+%token UNIT_NAME
+%token FILE_NAME
+
+%start starter
+
 %%
 
+/* -------------------------------------------------------------------------------------------- */
+
 starter:
-	begin
+    str
+    | starter str
 ;
 
-begin:
-	str
-	| begin str
+str: 
+	enter                                                 
+    | variable                  { location = EMPTY;  }           
+    | target                    { location = TARGET; }
+	| command					{ 
+		(!location) ? yyerror("Command is not in the target's body") : "\0";
+	}
+    | condition					{ location = COND;   }           
+    | include                   
+    | DEFINE                    
 ;
 
 enter:
-	ENTER 
+	ENTER
 	| enter ENTER
-	| EOF_{ printf("\nEnd of file\n"); exit (0); }
-
-str:
-	| enter
-	| variables_init
-	| rule
-	| command
+	| EOF_ 						{ printf("\nThis is MakeFile!\n"); exit(0); }
 ;
 
-variables_init:
-	VAR_NAME VAR_ASSIGNMENT var_value
+/* -------------------------------------------------------------------------------------------- */
+
+variable: 	
+	UNIT_NAME VAR_VALUE 	//init var: UNIT_NAME = <...>
+
+	// Export vars
+    | EXPORT UNIT_NAME enter
+    | EXPORT variable
 ;
 
-var_value:
-	VAR_NAME
-	| var_value VAR_NAME
+/* -------------------------------------------------------------------------------------------- */
+
+target: 
+    target_spec dependences enter       
+    | target_spec dependences ';' units enter
+    | target_spec dependences ';' enter
 ;
 
-rule:
-	VAR_NAME ':' dependences {printf("\nRule\n");}
-	//| target ':'
-	//| target ':' WORD
+target_spec: 
+    target_names ':'
+    | target_names ':'':'
+    | SPECIAL_TARGET ':'
 ;
 
-/* ------------------------------------------------------------------- */
-
-dependences:
-	| dependence
-	| dependences dependence
-;
-dependence:
-	VAR_NAME
+target_names: 
+    target_name
+    | target_names target_name
 ;
 
-/* ------------------------------------------------------------------- */
-commands:
-	| command
-	| commands command
+target_name: 
+    unit
+    | TEMPLATE_TARGET
+    | template
 ;
+
+/* -------------------------------------------------------------------------------------------- */
+
+dependences: 
+    | dependence
+    | dependences dependence
+;
+
+dependence: 
+    unit
+    | template
+;
+
+template: 
+    TEMPLATE
+    | '('TEMPLATE')'
+;
+
+/* -------------------------------------------------------------------------------------------- */
 
 command:
-	COMMAND
+	COMMAND enter
+	| VAR_VALUE
 ;
 
-/* ------------------------------------------------------------------- */
-	
+/* -------------------------------------------------------------------------------------------- */
 
-//| variables_init
+condition: 
+    IF '(' unit ',' unit ')' enter 
+    | IF '(' ',' unit ')' enter
+    | IF '(' unit ',' ')' enter
+    | IF '(' ',' ')' enter
+    | IFDEF unit enter
+    | ELSE { 
+		(!g_if_else) ? yyerror("Else without ifeq/ifdef statement") : --g_if_else;
+	}
+    | ENDIF enter { 
+		(!g_if_end) ? yyerror("Endif without ifeq/ifdef statement") : --g_if_end;
+	}
+;
+
+/* -------------------------------------------------------------------------------------------- */
+
+include: 
+	INCLUDE unit
+;
+
+units: 
+    unit
+    | units unit
+;
+
+unit: 
+    UNIT_NAME  
+    | PATH
+    | FILE_NAME
+    | variable_value
+;
+
+variable_value: 
+    '$' UNIT_NAME                                    
+    | '$' '$' UNIT_NAME    
+    | '$' '(' UNIT_NAME ')'                      
+    | '$' '{' UNIT_NAME '}'
+    | '$' '(' VAR_VALUE ')'
+    | '$' '{' VAR_VALUE '}'
+    | '$' '$' '(' VAR_VALUE ')'
+    | '$' '$' '{' VAR_VALUE '}'
+;
+
+%%
